@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Love Chat 💖</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ff4d6d, #ff99ac);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* floating hearts */
+.heart {
+    position: absolute;
+    color: rgba(255,255,255,0.6);
+    font-size: 18px;
+    animation: float 6s linear infinite;
+}
+
+@keyframes float {
+    0% {transform: translateY(100vh);}
+    100% {transform: translateY(-10vh);}
+}
+
+/* chat box */
+.chat {
+    width: 360px;
+    height: 520px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.header {
+    text-align: center;
+    padding: 10px;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* messages */
+.messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.msg {
+    padding: 8px 12px;
+    margin: 5px;
+    border-radius: 15px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.a { background: white; align-self: flex-start; }
+.b { background: #ffe0f0; align-self: flex-end; }
+
+/* input */
+.input {
+    display: flex;
+    padding: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+}
+
+button {
+    margin-left: 5px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 10px;
+    background: #ff3366;
+    color: white;
+    cursor: pointer;
+}
+.small-btn {
+    background: #ff6699;
+}
+</style>
+</head>
+
+<body>
+
+<!-- hearts -->
+<script>
+for (let i = 0; i < 20; i++) {
+    let h = document.createElement("div");
+    h.className = "heart";
+    h.innerHTML = "❤";
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.animationDuration = (3 + Math.random() * 5) + "s";
+    document.body.appendChild(h);
+}
+</script>
+
+<div class="chat">
+    <div class="header">💖 Love Chat</div>
+
+    <div class="messages" id="box"></div>
+
+    <div class="input">
+        <input type="text" id="msg" placeholder="Type message...">
+        <button onclick="send()">Send</button>
+        <button class="small-btn" onclick="clearChat()">🗑</button>
+    </div>
+</div>
+
+<audio id="music" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+</audio>
+
+<script>
+let turn = 1;
+
+/* load saved messages */
+window.onload = function() {
+    document.getElementById("box").innerHTML = localStorage.getItem("chat") || "";
+}
+
+function send() {
+    let input = document.getElementById("msg");
+    let text = input.value;
+    if (text === "") return;
+
+    let div = document.createElement("div");
+    div.classList.add("msg");
+
+    if (turn === 1) {
+        div.classList.add("a");
+        div.innerText = "A: " + text;
+        turn = 2;
+    } else {
+        div.classList.add("b");
+        div.innerText = "B: " + text;
+        turn = 1;
+    }
+
+    document.getElementById("box").appendChild(div);
+    input.value = "";
+
+    save();
+}
+
+/* save chat */
+function save() {
+    localStorage.setItem("chat", document.getElementById("box").innerHTML);
+}
+
+/* clear chat */
+function clearChat() {
+    document.getElementById("box").innerHTML = "";
+    localStorage.removeItem("chat");
+}
+
+/* play music on click anywhere */
+document.body.addEventListener("click", () => {
+    document.getElementById("music").play();
+}, { once: true });
+</script>
+
+</body>
+</html>
