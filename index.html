@@ -2,163 +2,184 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Khan ❤️ Fiza</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Love Chat</title>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
 body{
-background:#3b2233;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-.chat{
-width:380px;
-height:700px;
-background:#2d1b28;
-border-radius:25px;
-overflow:hidden;
-display:flex;
-flex-direction:column;
-box-shadow:0 0 20px rgba(0,0,0,.4);
-}
-
-.header{
-background:#ff4da6;
-padding:15px;
-text-align:center;
+background:black;
 color:white;
-font-size:22px;
-font-weight:bold;
+font-family:Arial;
+margin:0;
+padding:20px;
 }
 
-.online{
-font-size:12px;
-margin-top:5px;
+#loginBox,#chatBox{
+max-width:500px;
+margin:auto;
+background:#111;
+padding:20px;
+border:2px solid red;
+border-radius:10px;
 }
 
-#box{
-flex:1;
-overflow-y:auto;
-padding:15px;
-}
-
-.left{
-background:#444;
-color:white;
-padding:12px;
-border-radius:15px;
-max-width:70%;
-margin-bottom:10px;
-}
-
-.right{
-background:#ff4da6;
-color:white;
-padding:12px;
-border-radius:15px;
-max-width:70%;
-margin-left:auto;
-margin-bottom:10px;
-}
-
-.time{
-font-size:10px;
-opacity:.7;
-margin-top:5px;
-}
-
-.bottom{
-display:flex;
+input{
+width:100%;
 padding:10px;
-background:#24151f;
-}
-
-#msg{
-flex:1;
-padding:12px;
-border:none;
-border-radius:25px;
-outline:none;
+margin:5px 0;
+background:#222;
+color:white;
+border:1px solid red;
 }
 
 button{
-margin-left:10px;
-padding:12px 20px;
-border:none;
-border-radius:25px;
-background:#ff4da6;
+width:100%;
+padding:10px;
+background:red;
 color:white;
+border:none;
 cursor:pointer;
+}
+
+#messages{
+height:300px;
+overflow-y:auto;
+border:1px solid red;
+padding:10px;
+margin-bottom:10px;
+}
+
+.msg{
+background:#222;
+padding:8px;
+margin:5px 0;
+border-radius:8px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="chat">
+<div id="loginBox">
+<h2>Love Chat</h2>
 
-<div class="header">
-Khan ❤️ Fiza
-<div class="online">💚 Connected</div>
+<input type="email" id="email" placeholder="Email">
+
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
 </div>
 
-<div id="box">
+<div id="chatBox" style="display:none">
+<h2>Private Chat</h2>
 
-<div class="left">
-Hello meri jaan ❤️
-<div class="time">10:20 PM</div>
+<div id="messages"></div>
+
+<input id="messageInput" placeholder="Type message">
+
+<button onclick="sendMessage()">Send</button>
 </div>
 
-<div class="right">
-Hello Khan 😘
-<div class="time">10:21 PM</div>
-</div>
+<script type="module">
 
-</div>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-<div class="bottom">
-<input id="msg" placeholder="Write something sweet...">
-<button onclick="send()">Send</button>
-</div>
+import { getAuth, signInWithEmailAndPassword }
+from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-</div>
+import {
+getFirestore,
+collection,
+addDoc,
+query,
+orderBy,
+onSnapshot
+}
+from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-<script>
-function send(){
+const firebaseConfig = {
+apiKey: "AIzaSyBKy95iM9GDZe8Jix71dxQICqY4GF1O2Lg",
+authDomain: "love-chat-b86f5.firebaseapp.com",
+projectId: "love-chat-b86f5",
+storageBucket: "love-chat-b86f5.firebasestorage.app",
+messagingSenderId: "110257344850",
+appId: "1:110257344850:web:1551dfc1a69fd3665a2a8b"
+};
 
-let input=document.getElementById("msg");
-let text=input.value;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-if(text=="") return;
+let currentUser="";
 
-let div=document.createElement("div");
+window.login = async function(){
 
-div.className="right";
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
 
-let time=new Date().toLocaleTimeString([],{
-hour:'2-digit',
-minute:'2-digit'
+try{
+
+await signInWithEmailAndPassword(auth,email,password);
+
+currentUser=email;
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("chatBox").style.display="block";
+
+loadMessages();
+
+}catch(e){
+
+alert(e.message);
+
+}
+
+}
+
+window.sendMessage = async function(){
+
+const text=document.getElementById("messageInput").value;
+
+if(text==="") return;
+
+await addDoc(collection(db,"messages"),{
+user:currentUser,
+text:text,
+time:Date.now()
 });
 
-div.innerHTML=text+
-'<div class="time">'+time+'</div>';
-
-document.getElementById("box").appendChild(div);
-
-input.value="";
-
-document.getElementById("box").scrollTop=
-document.getElementById("box").scrollHeight;
+document.getElementById("messageInput").value="";
 }
+
+function loadMessages(){
+
+const q=query(
+collection(db,"messages"),
+orderBy("time")
+);
+
+onSnapshot(q,(snapshot)=>{
+
+const box=document.getElementById("messages");
+
+box.innerHTML="";
+
+snapshot.forEach((doc)=>{
+
+const data=doc.data();
+
+box.innerHTML += `
+<div class="msg">
+<b>${data.user}</b><br>
+${data.text}
+</div>
+`;
+
+});
+
+});
+
+}
+
 </script>
 
 </body>
